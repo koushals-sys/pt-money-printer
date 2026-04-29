@@ -36,6 +36,8 @@ export default async function RootLayout({
   let initialClinic: ClinicProfile | null = null;
 
   try {
+    console.log("[layout] SUPABASE_URL set:", !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log("[layout] ANON_KEY set:", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     const supabase = await createClient();
 
     // Get authenticated user — null for unauthenticated visitors
@@ -80,8 +82,8 @@ export default async function RootLayout({
         }
       }
     }
-  } catch {
-    // Build-time static prerendering has no Supabase connection — render unauthenticated shell
+  } catch (err) {
+    console.error("[layout] error:", err);
   }
 
   return (
