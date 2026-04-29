@@ -32,52 +32,56 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-
-  // Get authenticated user — null for unauthenticated visitors
-  const { data: { user: authUser } } = await supabase.auth.getUser();
-
   let initialUser: User | null = null;
   let initialClinic: ClinicProfile | null = null;
 
-  if (authUser) {
-    const { data: userRow } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", authUser.id)
-      .single();
+  try {
+    const supabase = await createClient();
 
-    if (userRow) {
-      initialUser = {
-        id: userRow.id,
-        clinic_id: userRow.clinic_id,
-        name: userRow.name,
-        email: userRow.email,
-        role: userRow.role,
-      };
+    // Get authenticated user — null for unauthenticated visitors
+    const { data: { user: authUser } } = await supabase.auth.getUser();
 
-      const { data: clinicRow } = await supabase
-        .from("clinic_profiles")
+    if (authUser) {
+      const { data: userRow } = await supabase
+        .from("users")
         .select("*")
-        .eq("id", userRow.clinic_id)
+        .eq("id", authUser.id)
         .single();
 
-      if (clinicRow) {
-        initialClinic = {
-          id: clinicRow.id,
-          name: clinicRow.name,
-          address: clinicRow.address ?? "",
-          city: clinicRow.city ?? "",
-          state: clinicRow.state ?? "",
-          zip: clinicRow.zip ?? "",
-          npi_number: clinicRow.npi_number ?? "",
-          nps_score: clinicRow.nps_score ?? 0,
-          injury_types: clinicRow.injury_types ?? [],
-          insurances_accepted: clinicRow.insurances_accepted ?? [],
-          avg_recovery_days: clinicRow.avg_recovery_days ?? 0,
+      if (userRow) {
+        initialUser = {
+          id: userRow.id,
+          clinic_id: userRow.clinic_id,
+          name: userRow.name,
+          email: userRow.email,
+          role: userRow.role,
         };
+
+        const { data: clinicRow } = await supabase
+          .from("clinic_profiles")
+          .select("*")
+          .eq("id", userRow.clinic_id)
+          .single();
+
+        if (clinicRow) {
+          initialClinic = {
+            id: clinicRow.id,
+            name: clinicRow.name,
+            address: clinicRow.address ?? "",
+            city: clinicRow.city ?? "",
+            state: clinicRow.state ?? "",
+            zip: clinicRow.zip ?? "",
+            npi_number: clinicRow.npi_number ?? "",
+            nps_score: clinicRow.nps_score ?? 0,
+            injury_types: clinicRow.injury_types ?? [],
+            insurances_accepted: clinicRow.insurances_accepted ?? [],
+            avg_recovery_days: clinicRow.avg_recovery_days ?? 0,
+          };
+        }
       }
     }
+  } catch {
+    // Build-time static prerendering has no Supabase connection — render unauthenticated shell
   }
 
   return (
