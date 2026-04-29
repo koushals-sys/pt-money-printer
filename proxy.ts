@@ -8,7 +8,6 @@ import { NextResponse, type NextRequest } from "next/server";
  * The proxy's only job here is to let Next.js propagate cookies correctly.
  */
 export function proxy(request: NextRequest) {
-  console.log("[proxy] incoming:", request.nextUrl.pathname);
   return NextResponse.next({ request });
 }
 
